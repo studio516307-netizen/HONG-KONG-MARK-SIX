@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小木桶幸運攪珠機</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f0e6d2;
+            background-image: radial-gradient(#fff3dd 20%, transparent 20%), radial-gradient(#fff3dd 20%, transparent 20%);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            color: #4a3319;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        .game-container {
+            width: 100%;
+            max-width: 500px;
+            background: #fffdf9;
+            border: 4px solid #8b5a2b;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(139, 90, 43, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        
+        .stage {
+            width: 100%;
+            height: 240px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .barrel-stand {
+            position: absolute;
+            width: 180px;
+            height: 140px;
+            border-left: 8px solid #5c3a21;
+            border-right: 8px solid #5c3a21;
+            bottom: 30px;
+            border-bottom: 8px solid #5c3a21;
+            border-radius: 0 0 10px 10px;
+        }
+        .barrel {
+            width: 120px;
+            height: 150px;
+            background: #cd853f;
+            border: 5px solid #8b5a2b;
+            border-radius: 40px / 15px;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.3), 0 5px 10px rgba(0,0,0,0.15);
+            transform-origin: center center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            z-index: 2;
+        }
+        .barrel::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 10px;
+            border-top: 3px solid #5c3a21;
+            border-bottom: 3px solid #5c3a21;
+            top: 30px;
+        }
+        .barrel::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 10px;
+            border-top: 3px solid #5c3a21;
+            border-bottom: 3px solid #5c3a21;
+            bottom: 30px;
+        }
+        .barrel-lines {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(92,58,33,0.3) 20px, rgba(92,58,33,0.3) 22px);
+        }
+        .inside-balls {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.05);
+            display: flex;
+            flex-wrap: wrap;
+            padding: 5px;
+            justify-content: center;
+            align-items: center;
+        }
+        .tiny-ball {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ff7f50;
+            margin: 2px;
+        }
+        
+        .handle-axis {
+            position: absolute;
+            right: 120px;
+            width: 40px;
+            height: 12px;
+            background: #8b8b8b;
+            z-index: 1;
+        }
+        .handle {
+            position: absolute;
+            right: 90px;
+            width: 40px;
+            height: 80px;
+            transform-origin: 10px 40px;
+            z-index: 3;
+            transition: transform 0.1s linear;
+        }
+        .handle-arm {
+            position: absolute;
+            width: 12px;
+            height: 60px;
+            background: #a9a9a9;
+            border: 2px solid #696969;
+            border-radius: 5px;
+            top: 10px;
+            left: 4px;
+        }
+        .handle-knob {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: #8b5a2b;
+            border-radius: 50%;
+            top: 0;
+            left: -1px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .crank-button {
+            position: absolute;
+            right: 15px;
+            top: 75px;
+            width: 75px;
+            height: 75px;
+            background: #4caf50;
+            color: white;
+            border: 3px solid #388e3c;
+            border-radius: 50%;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            line-height: 1.3;
+            z-index: 10;
+        }
+        .crank-button:active {
+            transform: scale(0.92);
+            background: #388e3c;
+        }
+        .crank-button:disabled {
+            background: #cccccc;
+            border-color: #999999;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        @keyframes shake {
+            0% { transform: rotate(0deg) translate(0, 0); }
+            20% { transform: rotate(5deg) translate(-2px, 3px); }
+            40% { transform: rotate(-5deg) translate(3px, -1px); }
+            60% { transform: rotate(3deg) translate(-1px, -2px); }
+            80% { transform: rotate(-3deg) translate(2px, 2px); }
+            100% { transform: rotate(0deg) translate(0, 0); }
+        }
+        .shaking {
+            animation: shake 0.15s infinite;
+        }
+
+        .hatch {
+            position: absolute;
+            bottom: 10px;
+            width: 40px;
+            height: 25px;
+            background: #5c3a21;
+            border-radius: 5px;
+            z-index: 1;
+        }
+
+        .falling-zone {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 4;
+        }
+        .falling-ball {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle at 30% 30%, #ffb347, #ff8c00);
+            border: 2px solid #d35400;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            top: 150px;
+            left: calc(50% - 20px);
+            animation: fallToTray 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+        }
+
+        @keyframes fallToTray {
+            0% { transform: translateY(0) scale(0.5); opacity: 0; }
+            30% { opacity: 1; transform: translateY(10px) scale(1.1); }
+            100% { transform: translateY(140px) scale(1); opacity: 1; }
+        }
+
+        .tray-container {
+            width: 100%;
+            margin-top: 10px;
+        }
+        .tray-label {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-align: center;
+            color: #7f522a;
+        }
+        .tray {
+            width: 100%;
+            height: 65px;
+            background: #d2b48c;
+            border: 4px solid #8b5a2b;
+            border-radius: 8px;
+            box-shadow: inset 0 5px 10px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            gap: 10px;
+            justify-content: center;
+        }
+        .slot-ball {
+            width: 44px;
+            height: 44px;
+            background: radial-gradient(circle at 30% 30%, #ffd700, #ff8c00);
+            border: 2px solid #b8860b;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-weight: bold;
+            font-size: 16px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+            box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .controls {
+            margin-top: 25px;
+            display: flex;
+            gap: 15px;
+            width: 100%;
+        }
+        button.action-btn {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.1s ease;
+        }
+        button.action-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+        }
+        .btn-spin {
+            background: #ff8c00;
+            color: white;
+            border-bottom: 4px solid #b36200;
+        }
+        .btn-spin:disabled {
+            background: #cccccc;
+            border-bottom: 4px solid #999999;
+            color: #666666;
+            cursor: not-allowed;
+        }
+        .btn-reset {
+            background: #e74c3c;
+            color: white;
+            border-bottom: 4px solid #c0392b;
+        }
+
+        .status-msg {
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: bold;
+            min-height: 20px;
+            color: #e67e22;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🪵 幸運木桶攪珠機 🎰</h1>
+
+    <div class="game-container">
+        <div class="stage">
+            <div class="barrel-stand"></div>
+            <div class="handle-axis"></div>
+            
+            <div class="barrel" id="barrel">
+                <div class="barrel-lines"></div>
+                <div class="inside-balls">
+                    <div class="tiny-ball"></div><div class="tiny-ball"></div>
+                    <div class="tiny-ball"></div><div class="tiny-ball"></div>
+                    <div class="tiny-ball"></div><div class="tiny-ball"></div>
+                </div>
+            </div>
+
+            <div class="handle" id="handle">
+                <div class="handle-arm"></div>
+                <div class="handle-knob"></div>
+            </div>
+
+            <button class="crank-button" id="crankBtn" onclick="requestBall()">按我<br>轉手柄</button>
+
+            <div class="hatch"></div>
+            <div class="falling-zone" id="fallingZone"></div>
+        </div>
+
+        <div class="tray-container">
+            <div class="tray-label">📥 長方形收集槽 (最多7個波)</div>
+            <div class="tray" id="tray"></div>
+        </div>
+
+        <div class="status-msg" id="statusMsg">點擊右側綠色「按我轉手柄」開始搖珠！</div>
+
+        <div class="controls">
+            <button class="action-btn btn-spin" id="spinBtn" onclick="requestBall()">🔄 搖珠出波</button>
+            <button class="action-btn btn-reset" onclick="resetGame()">🧹 重置</button>
+        </div>
+    </div>
+
+    <script>
+        const maxBalls = 7;
+        let ballPool = [];
+        let selectedBalls = [];
+        let isSpinning = false;
+        let handleAngle = 0;
+
+        const barrel = document.getElementById('barrel');
+        const handle = document.getElementById('handle');
+        const tray = document.getElementById('tray');
+        const fallingZone = document.getElementById('fallingZone');
+        const spinBtn = document.getElementById('spinBtn');
+        const crankBtn = document.getElementById('crankBtn');
+        const statusMsg = document.getElementById('statusMsg');
+
+        function initPool() {
+            ballPool = [];
+            for (let i = 1; i <= 99; i++) {
+                ballPool.push(i);
+            }
+        }
+
+        function resetGame() {
+            if (isSpinning) return;
+            initPool();
+            selectedBalls = [];
+            tray.innerHTML = '';
+            fallingZone.innerHTML = '';
+            spinBtn.disabled = false;
+            crankBtn.disabled = false;
+            statusMsg.innerText = '遊戲已重置，請搖動手柄出波！';
+            statusMsg.style.color = '#e67e22';
+        }
+
+        function requestBall() {
+            if (isSpinning) return;
+            if (selectedBalls.length >= maxBalls) {
+                statusMsg.innerText = '收集槽已經滿了（最多7個波）！請點擊重置。';
+                statusMsg.style.color = '#e74c3c';
+                return;
+            }
+
+            isSpinning = true;
+            spinBtn.disabled = true;
+            crankBtn.disabled = true;
+            statusMsg.innerText = '正在瘋狂攪珠中...';
+            statusMsg.style.color = '#34495e';
+
+            barrel.classList.add('shaking');
+            
+            let rotations = 0;
+            const handleInterval = setInterval(() => {
+                handleAngle += 30;
+                handle.style.transform = `rotate(${handleAngle}deg)`;
+                rotations++;
+                
+                if (rotations >= 12) {
+                    clearInterval(handleInterval);
+                    executeBallDrop();
+                }
+            }, 60);
+        }
+
+        function executeBallDrop() {
+            barrel.classList.remove('shaking');
+
+            const randomIndex = Math.floor(Math.random() * ballPool.length);
+            const drawnNumber = ballPool.splice(randomIndex, 1)[0];
+            selectedBalls.push(drawnNumber);
+
+            const fallingBall = document.createElement('div');
+            fallingBall.className = 'falling-ball';
+            fallingBall.innerText = drawnNumber;
+            fallingZone.appendChild(fallingBall);
+
+            setTimeout(() => {
+                if (fallingZone.contains(fallingBall)) {
+                    fallingZone.removeChild(fallingBall);
+                }
+                
+                const slotBall = document.createElement('div');
+                slotBall.className = 'slot-ball';
+                slotBall.innerText = drawnNumber;
+                tray.appendChild(slotBall);
+
+                isSpinning = false;
+                if (selectedBalls.length < maxBalls) {
+                    spinBtn.disabled = false;
+                    crankBtn.disabled = false;
+                    statusMsg.innerText = `成功搖出號碼：${drawnNumber}！`;
+                    statusMsg.style.color = '#2ecc71';
+                } else {
+                    statusMsg.innerText = `已集齊 7 個號碼波！攪珠圓滿結束。`;
+                    statusMsg.style.color = '#9b59b6';
+                }
+            }, 600);
+        }
+
+        initPool();
+    </script>
+</body>
+</html>
