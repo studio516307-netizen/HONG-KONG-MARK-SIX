@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小木桶幸運攪珠機</title>
+    <title>小木桶幸運攪珠機 (1-49)</title>
     <style>
         * {
             box-sizing: border-box;
@@ -24,11 +24,6 @@
             min-height: 100vh;
             padding: 20px;
         }
-        h1 {
-            margin-bottom: 20px;
-            font-size: 24px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-        }
         .game-container {
             width: 100%;
             max-width: 500px;
@@ -42,7 +37,6 @@
             align-items: center;
             position: relative;
         }
-        
         .stage {
             width: 100%;
             height: 240px;
@@ -77,24 +71,17 @@
             overflow: hidden;
             z-index: 2;
         }
-        .barrel::before {
+        .barrel::before, .barrel::after {
             content: '';
             position: absolute;
             width: 100%;
             height: 10px;
             border-top: 3px solid #5c3a21;
             border-bottom: 3px solid #5c3a21;
-            top: 30px;
         }
-        .barrel::after {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 10px;
-            border-top: 3px solid #5c3a21;
-            border-bottom: 3px solid #5c3a21;
-            bottom: 30px;
-        }
+        .barrel::before { top: 30px; }
+        .barrel::after { bottom: 30px; }
+        
         .barrel-lines {
             position: absolute;
             width: 100%;
@@ -120,7 +107,6 @@
             background: #ff7f50;
             margin: 2px;
         }
-        
         .handle-axis {
             position: absolute;
             right: 120px;
@@ -158,7 +144,6 @@
             left: -1px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
-
         .crank-button {
             position: absolute;
             right: 15px;
@@ -190,7 +175,6 @@
             cursor: not-allowed;
             box-shadow: none;
         }
-        
         @keyframes shake {
             0% { transform: rotate(0deg) translate(0, 0); }
             20% { transform: rotate(5deg) translate(-2px, 3px); }
@@ -199,10 +183,7 @@
             80% { transform: rotate(-3deg) translate(2px, 2px); }
             100% { transform: rotate(0deg) translate(0, 0); }
         }
-        .shaking {
-            animation: shake 0.15s infinite;
-        }
-
+        .shaking { animation: shake 0.15s infinite; }
         .hatch {
             position: absolute;
             bottom: 10px;
@@ -212,7 +193,6 @@
             border-radius: 5px;
             z-index: 1;
         }
-
         .falling-zone {
             position: absolute;
             width: 100%;
@@ -240,24 +220,13 @@
             animation: fallToTray 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
             box-shadow: 0 4px 6px rgba(0,0,0,0.15);
         }
-
         @keyframes fallToTray {
             0% { transform: translateY(0) scale(0.5); opacity: 0; }
             30% { opacity: 1; transform: translateY(10px) scale(1.1); }
             100% { transform: translateY(140px) scale(1); opacity: 1; }
         }
-
-        .tray-container {
-            width: 100%;
-            margin-top: 10px;
-        }
-        .tray-label {
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 5px;
-            text-align: center;
-            color: #7f522a;
-        }
+        .tray-container { width: 100%; margin-top: 10px; }
+        .tray-label { font-size: 14px; font-weight: bold; margin-bottom: 5px; text-align: center; color: #7f522a; }
         .tray {
             width: 100%;
             height: 65px;
@@ -291,13 +260,7 @@
             0% { transform: scale(0); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
-
-        .controls {
-            margin-top: 25px;
-            display: flex;
-            gap: 15px;
-            width: 100%;
-        }
+        .controls { margin-top: 25px; display: flex; gap: 15px; width: 100%; }
         button.action-btn {
             flex: 1;
             padding: 12px;
@@ -309,61 +272,32 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             transition: all 0.1s ease;
         }
-        button.action-btn:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 3px rgba(0,0,0,0.1);
-        }
-        .btn-spin {
-            background: #ff8c00;
-            color: white;
-            border-bottom: 4px solid #b36200;
-        }
-        .btn-spin:disabled {
-            background: #cccccc;
-            border-bottom: 4px solid #999999;
-            color: #666666;
-            cursor: not-allowed;
-        }
-        .btn-reset {
-            background: #e74c3c;
-            color: white;
-            border-bottom: 4px solid #c0392b;
-        }
-
-        .status-msg {
-            margin-top: 15px;
-            font-size: 14px;
-            font-weight: bold;
-            min-height: 20px;
-            color: #e67e22;
-        }
+        button.action-btn:active { transform: translateY(2px); }
+        .btn-spin { background: #ff8c00; color: white; border-bottom: 4px solid #b36200; }
+        .btn-spin:disabled { background: #cccccc; border-bottom: 4px solid #999999; color: #666666; cursor: not-allowed; }
+        .btn-reset { background: #e74c3c; color: white; border-bottom: 4px solid #c0392b; }
+        .status-msg { margin-top: 15px; font-size: 14px; font-weight: bold; min-height: 20px; color: #e67e22; text-align: center; }
     </style>
 </head>
 <body>
 
-    <h1>🪵 幸運木桶攪珠機 🎰</h1>
-
     <div class="game-container">
+        <h2 style="margin-bottom: 15px; font-size: 20px; text-align: center;">🪵 木桶幸運攪珠機 (1-49) 🎰</h2>
         <div class="stage">
             <div class="barrel-stand"></div>
             <div class="handle-axis"></div>
-            
             <div class="barrel" id="barrel">
                 <div class="barrel-lines"></div>
                 <div class="inside-balls">
                     <div class="tiny-ball"></div><div class="tiny-ball"></div>
                     <div class="tiny-ball"></div><div class="tiny-ball"></div>
-                    <div class="tiny-ball"></div><div class="tiny-ball"></div>
                 </div>
             </div>
-
             <div class="handle" id="handle">
                 <div class="handle-arm"></div>
                 <div class="handle-knob"></div>
             </div>
-
             <button class="crank-button" id="crankBtn" onclick="requestBall()">按我<br>轉手柄</button>
-
             <div class="hatch"></div>
             <div class="falling-zone" id="fallingZone"></div>
         </div>
@@ -373,7 +307,7 @@
             <div class="tray" id="tray"></div>
         </div>
 
-        <div class="status-msg" id="statusMsg">點擊右側綠色「按我轉手柄」開始搖珠！</div>
+        <div class="status-msg" id="statusMsg">點擊綠色「按我轉手柄」開始攪珠！</div>
 
         <div class="controls">
             <button class="action-btn btn-spin" id="spinBtn" onclick="requestBall()">🔄 搖珠出波</button>
@@ -398,7 +332,8 @@
 
         function initPool() {
             ballPool = [];
-            for (let i = 1; i <= 99; i++) {
+            // ★ 修改：限定 1 至 49
+            for (let i = 1; i <= 49; i++) {
                 ballPool.push(i);
             }
         }
